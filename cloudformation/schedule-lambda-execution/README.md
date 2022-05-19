@@ -1,4 +1,4 @@
-# Start/Stop EC2 Cloudformation Template
+# Schedule Lambda Execution
 
 This templates deploys a rule to schedule a lambda execution. This matches perfectly with a lambda that turns on/off resources in order to avoid expending unnecesary compute time therefore money.
 
