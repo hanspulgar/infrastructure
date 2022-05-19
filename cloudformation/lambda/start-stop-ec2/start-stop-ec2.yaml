@@ -1,0 +1,100 @@
+Description: Lambda to start/stop EC2 Instances
+
+Parameters:
+
+  Environment:
+    Description: Environment
+    Default: prod
+    Type: String
+    AllowedValues:
+      - prod
+      - qa
+      - dev
+
+  Project:
+    Description: Project name
+    Default: project-name
+    Type: String
+
+Resources:
+
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Join [ -, [ lambda, !Ref AWS::AccountId, !Ref Project, !Ref Environment ] ]
+      Description: !Sub "Lambda used to start/stop EC2 instances"
+      Runtime: python3.9
+      Role: !GetAtt LambdaRole.Arn
+      Handler: index.lambda_handler
+      Timeout: 60
+      Code:
+        ZipFile: |
+          import boto3
+
+          def lambda_handler(event, context):
+            action = event['ACTION']
+            instances_id = event['INSTANCES_ID']
+            region = event['REGION']
+            ec2 = boto3.client('ec2', region_name=region)
+
+            if action == "start":
+              try:
+                ec2.start_instances(InstanceIds=instances_id)
+                print("Instances '{instances_id}' has been started".format(instances_id=instances_id))
+                print()
+              except:
+                print("Instances '{instances_id}' could not be started".format(instances_id=instances_id))
+                print("Because", sys.exc_info()[0], "occurred.")
+                print("Trying with next instances")
+                print()
+              
+            elif action == "stop":
+              try:
+                ec2.stop_instances(InstanceIds=instances_id)
+                print("Instances '{instances_id}' has been stopped".format(instances_id=instances_id))
+                print()
+              except:
+                print("Instances '{instances_id}' could not be stopped".format(instances_id=instances_id))
+                print("Because", sys.exc_info()[0], "occurred.")
+                print("Trying with next instances")
+                print()
+            return "Done"
+      Tags: 
+        - Key: "project"
+          Value: !Ref Project
+        - Key: "environment"
+          Value: !Ref Environment
+
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Join [ -, [ lambda-role, !Ref AWS::AccountId, !Ref Project, !Ref Environment ] ]
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: '1'
+            Effect: Allow
+            Principal:
+              Service: 
+                - lambda.amazonaws.com
+            Action: 
+              - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole' 
+      Policies:
+        - PolicyName: !Join [ -, [ policy, start, stop, !Ref AWS::AccountId, !Ref Project, !Ref Environment ] ]
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+              - ec2:StartInstances
+              - ec2:StopInstances
+              Resource: 
+                '*'
+      Tags: 
+        - Key: "project"
+          Value: !Ref Project
+        - Key: "environment"
+          Value: !Ref Environment
