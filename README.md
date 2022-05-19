@@ -1,5 +1,5 @@
 # README
-This repo intends to help anyone to devolop or improve the infrastructure.
+This repo intends to help you to develop or improve your AWS infrastructure.
 
 Here, you'll find some infrastructure resources that can be easily deployed in your AWS account in order to automate some processes.
 
