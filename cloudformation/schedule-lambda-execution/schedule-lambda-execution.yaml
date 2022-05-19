@@ -1,0 +1,60 @@
+Description: Schedule to execute Lambda Function
+
+Parameters:
+
+  Environment:
+    Description: Environment
+    Default: prod
+    Type: String
+    AllowedValues:
+      - prod
+      - qa
+      - dev
+
+  Project:
+    Description: Project name
+    Default: project-name
+    Type: String
+
+  LambdaFunctionName:
+    Description: Lambda Function Name
+    Default: FunctionName
+    Type: String
+
+  State:
+    Description: Rule State
+    Default: ENABLED
+    Type: String
+
+  ScheduleExpression:
+    Description: Schedule Expression
+    Default: cron(0 20 * * ? *)
+    Type: String
+
+  LambdaInput:
+    Description: Input for lambda function
+    Default: '{"ACTION": "start", "REGION": "us-east-1", "INSTANCES_ID": [ "i-xxxxxxxxxxxxxxxx1", "i-xxxxxxxxxxxxxxxx2", "i-xxxxxxxxxxxxxxxx3", "i-xxxxxxxxxxxxxxxx4"] }'
+    Type: String
+
+
+Resources:
+
+  EventRule:
+    Type: AWS::Events::Rule
+    Properties: 
+      Description: !Join [ -, [ rule, !Ref AWS::AccountId, !Ref Project, !Ref Environment ] ]
+      Name: !Join [ -, [ rule, !Ref AWS::AccountId, !Ref Project, !Ref Environment ] ]
+      ScheduleExpression: !Ref ScheduleExpression
+      State: ENABLED
+      Targets: 
+        - Arn: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${LambdaFunctionName}'
+          Id: !Join [ -, [ rule, !Ref AWS::AccountId, !Ref Project, !Ref Environment ] ]
+          Input: !Ref LambdaInput
+
+  LambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${LambdaFunctionName}'
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt EventRule.Arn
