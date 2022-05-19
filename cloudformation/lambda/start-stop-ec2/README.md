@@ -14,10 +14,10 @@ Here is an example of JSON input:
   "ACTION": "start",
   "REGION": "us-east-1",
   "INSTANCES_ID": [
-    i-xxxxxxxxxxxxxxxx1,
-    i-xxxxxxxxxxxxxxxx2,
-    i-xxxxxxxxxxxxxxxx3,
-    i-xxxxxxxxxxxxxxxx4
+    "i-xxxxxxxxxxxxxxxx1",
+    "i-xxxxxxxxxxxxxxxx2",
+    "i-xxxxxxxxxxxxxxxx3",
+    "i-xxxxxxxxxxxxxxxx4"
   ]
 }
 ``` 
